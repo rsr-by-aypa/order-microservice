@@ -17,6 +17,7 @@ public class OrderRequestDTO {
     public static class ProductRequest {
         private Long productId;
         private Double price;
+        //brauch man sort?
         private String sort;
         private Integer quantity;
     }
