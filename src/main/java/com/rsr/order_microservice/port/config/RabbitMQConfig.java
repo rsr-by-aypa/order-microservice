@@ -12,39 +12,64 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-    @Value("${rabbitmq.order.queue.name}")
-    private String queue;
+    @Value("${rabbitmq.product.created.queue.name}")
+    private String productCreatedQueue;
 
-    @Value("${rabbitmq.order.exchange.name}")
+    @Value("${rabbitmq.product.updated.queue.name}")
+    private String productUpdatedQueue;
+
+    @Value("${rabbitmq.payment.success.queue.name}")
+    private String paymentSuccessQueue;
+
+    @Value("${rabbitmq.rsr.exchange.name}")
     private String exchange;
 
-    /*
-    @Value("${rabbitmq.amount_change.binding.key}")
-    private String bindingKey;
-     */
+    @Value("${rabbitmq.routing.created}")
+    private String productCreatedBindingKey;
 
+    @Value("${rabbitmq.routing.updated}")
+    private String productUpdatedBindingKey;
+
+    @Value("${rabbitmq.payment.success}")
+    private String paymentSuccessBindingKey;
+
+    @Value("${rabbitmq.order.toPay.routing_key}")
+    private String orderToPayRoutingKey;
 
     @Bean
-    public Queue productQueue() {
-        return new Queue(queue);
+    public Queue productCreatedQueue() {
+        return new Queue(productCreatedQueue);
     }
 
+    @Bean
+    public Queue productUpdatedQueue() {
+        return new Queue(productUpdatedQueue);
+    }
+
+    @Bean
+    public Queue paymentSuccessQueue() {
+        return new Queue(paymentSuccessQueue);
+    }
 
     @Bean
     public TopicExchange exchange() {
         return new TopicExchange(exchange);
     }
 
-    /*
     @Bean
-    public Binding binding() {
-        return BindingBuilder
-                .bind(productQueue())
-                .to(exchange())
-                .with(bindingKey);
+    public Binding productCreatedBinding() {
+        return BindingBuilder.bind(productCreatedQueue()).to(exchange()).with(productCreatedBindingKey);
     }
-     */
 
+    @Bean
+    public Binding productUpdatedBinding() {
+        return BindingBuilder.bind(productUpdatedQueue()).to(exchange()).with(productUpdatedBindingKey);
+    }
+
+    @Bean
+    public Binding paymentSuccessBinding() {
+        return BindingBuilder.bind(paymentSuccessQueue()).to(exchange()).with(paymentSuccessBindingKey);
+    }
 
     @Bean
     public MessageConverter converter() {
