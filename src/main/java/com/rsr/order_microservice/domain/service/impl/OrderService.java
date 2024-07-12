@@ -1,13 +1,18 @@
 package com.rsr.order_microservice.domain.service.impl;
 
-import com.example.orderservice.dto.OrderRequest;
 import com.rsr.order_microservice.domain.model.Order;
 import com.rsr.order_microservice.domain.model.Product;
 import com.rsr.order_microservice.domain.service.interfaces.OrderRepository;
+import com.rsr.order_microservice.domain.service.interfaces.ProductRepository;
+import com.rsr.order_microservice.port.config.RabbitMQConfig;
+import com.rsr.order_microservice.port.user.dto.OrderRequestDTO;
+import com.rsr.order_microservice.port.user.dto.PaymentRequestDTO;
+import com.rsr.order_microservice.port.user.producer.OrderProducer;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,12 +23,12 @@ public class OrderService {
     private OrderRepository orderRepository;
 
     @Autowired
-    private RabbitTemplate rabbitTemplate;
+    private ProductRepository productRepository;
 
     @Autowired
-    private RabbitMQConfig rabbitMQConfig;
+    private OrderProducer orderProducer;
 
-    public Order createOrder(OrderRequest orderRequest) {
+    public Order createOrder(OrderRequestDTO orderRequest) {
         Order order = new Order();
         order.setFirstName(orderRequest.getFirstName());
         order.setLastName(orderRequest.getLastName());
@@ -41,13 +46,27 @@ public class OrderService {
                 )).collect(Collectors.toList());
 
         order.setProducts(products);
+        order.setPaymentCompleted(false);
+        order.setOrderCreationTime(LocalDateTime.now());
+
 
         // Speichere die Bestellung in der Datenbank
         Order savedOrder = orderRepository.save(order);
 
-        // Sende die Bestelldaten an RabbitMQ
-        rabbitTemplate.convertAndSend(rabbitMQConfig.ORDER_QUEUE, savedOrder);
+        // Sende die Zahlungsanfrage an RabbitMQ
+        PaymentRequestDTO paymentRequest = new PaymentRequestDTO(order.getUserId(), savedOrder.getTotalPrice(), order.getPaymentInfo());
+        orderProducer.sendPaymentRequest(paymentRequest);
 
         return savedOrder;
+    }
+
+    public void updateProduct(Product product) {
+        productRepository.save(product);
+    }
+
+    public void completePayment(Long orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new IllegalArgumentException("Invalid order ID"));
+        order.setPaymentCompleted(true);
+        orderRepository.save(order);
     }
 }
