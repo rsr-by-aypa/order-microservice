@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,6 +31,7 @@ public class OrderService {
 
     public Order createOrder(OrderRequestDTO orderRequest) {
         Order order = new Order();
+        order.setUserId(orderRequest.getUserId());
         order.setFirstName(orderRequest.getFirstName());
         order.setLastName(orderRequest.getLastName());
         order.setEmail(orderRequest.getEmail());
@@ -49,8 +51,6 @@ public class OrderService {
         order.setPaymentCompleted(false);
         order.setOrderCreationTime(LocalDateTime.now());
 
-
-        // Speichere die Bestellung in der Datenbank
         Order savedOrder = orderRepository.save(order);
 
         // Sende die Zahlungsanfrage an RabbitMQ
@@ -68,5 +68,9 @@ public class OrderService {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new IllegalArgumentException("Invalid order ID"));
         order.setPaymentCompleted(true);
         orderRepository.save(order);
+    }
+
+    public Optional<Order> getOrder(Long id) {
+        return orderRepository.findById(id);
     }
 }
