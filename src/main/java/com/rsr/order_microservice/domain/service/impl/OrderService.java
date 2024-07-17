@@ -18,7 +18,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
@@ -44,8 +43,8 @@ public class OrderService {
 
                     // Produktinformationen in ein Item-Objekt übertragen
                     return new Item(
-                            product.getProductId(),
-                            product.getProductName(),
+                            product.getId(),
+                            product.getName(),
                             product.getPriceInEuro(),
                             itemRequest.getQuantity()
                     );
