@@ -59,6 +59,8 @@ public class OrderService {
 
         // Sende die Zahlungsanfrage an RabbitMQ
         sendPaymentRequest(savedOrder);
+        //sende Email mit Daten
+        sendOrderToEmail(savedOrder);
 
         return savedOrder;
     }
