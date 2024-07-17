@@ -1,4 +1,4 @@
-package com.rsr.order_microservice.port.user.producer;
+package com.rsr.order_microservice.port.payment.producer;
 
 import com.rsr.order_microservice.port.user.dto.PaymentRequestDTO;
 import org.slf4j.Logger;

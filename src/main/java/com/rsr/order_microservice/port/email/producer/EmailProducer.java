@@ -1,4 +1,4 @@
-package com.rsr.order_microservice.port.user.producer;
+package com.rsr.order_microservice.port.email.producer;
 
 import com.rsr.order_microservice.port.user.dto.OrderDTO;
 import org.slf4j.Logger;
