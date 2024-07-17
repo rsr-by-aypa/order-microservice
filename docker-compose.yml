@@ -1,0 +1,89 @@
+version: '3'
+services:
+  rabbitmq:
+    image: rabbitmq:3.13.3-management
+    container_name: 'rabbitmq'
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - mynetwork
+
+  postgres-for-microservice-1:
+    image: postgres:latest
+    container_name: 'postgres-for-product-microservice'
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=rsr
+      - POSTGRES_DB=ms-product
+    networks:
+      - mynetwork
+
+  postgres-for-microservice-2:
+    image: postgres:latest
+    container_name: 'postgres-for-microservice-2'
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_PASSWORD=S3cret
+      - POSTGRES_USER=ms2
+      - POSTGRES_DB=ms2
+    networks:
+      - mynetwork
+
+  postgres-for-keycloak:
+    image: postgres:latest
+    container_name: 'postgres-for-keycloak'
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_PASSWORD: S3cret
+      POSTGRES_USER: rsr_admin
+      POSTGRES_DB: keycloak_db
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - mynetwork
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:legacy
+    container_name: 'keycloak'
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      DB_VENDOR: POSTGRES
+      DB_ADDR: postgres-for-keycloak
+      DB_SCHEMA: public
+      DB_DATABASE: keycloak_db
+      DB_USER: rsr_admin
+      DB_PASSWORD: S3cret
+      KEYCLOAK_USER: rsr_admin
+      KEYCLOAK_PASSWORD: rsr_password
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres-for-keycloak
+    networks:
+      - mynetwork
+
+  product-microservice:
+    build: .
+    container_name: 'order-microservice'
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-for-order-microservice:5432/ms-product
+      SPRING_DATASOURCE_USERNAME: rsr
+      SPRING_DATASOURCE_PASSWORD: postgres
+    networks:
+      - mynetwork
+
+volumes:
+  postgres_data:
+
+networks:
+  mynetwork:

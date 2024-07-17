@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/orders")
 public class OrderController {
@@ -18,15 +20,16 @@ public class OrderController {
     @Autowired
     private OrderRepository orderRepository;
 
-    @PostMapping
-    public ResponseEntity<Order> createOrder(@RequestBody OrderRequestDTO orderRequest) {
+    @PostMapping("/{userId}")
+    public ResponseEntity<Order> createOrder(@RequestBody OrderRequestDTO orderRequest, @PathVariable UUID userId) {
+        orderRequest.setUserId(userId);
         Order order = orderService.createOrder(orderRequest);
         return ResponseEntity.ok(order);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Order> getOrder(@PathVariable Long id) {
-        return orderService.getOrder(id)
+    @GetMapping("/{orderId}/{userId}")
+    public ResponseEntity<Order> getOrder(@PathVariable UUID orderId, @PathVariable UUID userId) {
+        return orderService.getOrder(orderId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
