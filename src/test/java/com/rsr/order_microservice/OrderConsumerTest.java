@@ -2,6 +2,7 @@ package com.rsr.order_microservice;
 
 import com.rsr.order_microservice.domain.model.Product;
 import com.rsr.order_microservice.domain.service.impl.OrderService;
+import com.rsr.order_microservice.domain.service.impl.ProductService;
 import com.rsr.order_microservice.port.user.consumer.OrderConsumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,10 +19,12 @@ public class OrderConsumerTest {
     @Mock
     private OrderService orderService;
 
+    @Mock
+    private ProductService productService;
+
     @InjectMocks
     private OrderConsumer orderConsumer;
 
-    private UUID id = UUID.randomUUID();
     private UUID productId = UUID.randomUUID();
     private UUID orderId = UUID.randomUUID();
 
@@ -32,16 +35,16 @@ public class OrderConsumerTest {
 
     @Test
     public void testHandleProductCreated() {
-        Product product = new Product(id, productId, 10.0, "Opal", 1);
+        Product product = new Product(productId, 10.0, "Opal");
         orderConsumer.handleProductCreated(product);
-        verify(orderService, times(1)).updateProduct(product);
+        verify(productService, times(1)).updateProduct(product);
     }
 
     @Test
     public void testHandleProductUpdated() {
-        Product product = new Product(id, productId, 10.0, "Crystal", 1);
+        Product product = new Product(productId, 10.0, "Crystal");
         orderConsumer.handleProductUpdated(product);
-        verify(orderService, times(1)).updateProduct(product);
+        verify(productService, times(1)).updateProduct(product);
     }
 
 

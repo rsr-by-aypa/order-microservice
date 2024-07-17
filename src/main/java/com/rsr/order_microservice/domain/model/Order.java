@@ -14,6 +14,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "order")
 public class Order {
 
     @Id
@@ -30,9 +31,12 @@ public class Order {
     private LocalDateTime orderCreationTime;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Product> products;
+    private List<Item> items;
+    private double totalPrice;
 
     public double getTotalPrice() {
-        return products.stream().mapToDouble(Product::getPrice).sum();
+        return items.stream()
+                .mapToDouble(item -> item.getPriceInEuro() * item.getAmount())
+                .sum();
     }
 }

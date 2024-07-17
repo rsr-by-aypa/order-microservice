@@ -20,15 +20,16 @@ public class OrderController {
     @Autowired
     private OrderRepository orderRepository;
 
-    @PostMapping
-    public ResponseEntity<Order> createOrder(@RequestBody OrderRequestDTO orderRequest) {
+    @PostMapping("/{userId}")
+    public ResponseEntity<Order> createOrder(@RequestBody OrderRequestDTO orderRequest, @PathVariable UUID userId) {
+        orderRequest.setUserId(userId);
         Order order = orderService.createOrder(orderRequest);
         return ResponseEntity.ok(order);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Order> getOrder(@PathVariable UUID id) {
-        return orderService.getOrder(id)
+    @GetMapping("/{orderId}/{userId}")
+    public ResponseEntity<Order> getOrder(@PathVariable UUID orderId, @PathVariable UUID userId) {
+        return orderService.getOrder(orderId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

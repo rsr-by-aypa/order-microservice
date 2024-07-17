@@ -1,5 +1,6 @@
 package com.rsr.order_microservice.domain.service.impl;
 
+import com.rsr.order_microservice.domain.model.Item;
 import com.rsr.order_microservice.domain.model.Order;
 import com.rsr.order_microservice.domain.model.Product;
 import com.rsr.order_microservice.domain.service.interfaces.OrderRepository;
@@ -9,6 +10,7 @@ import com.rsr.order_microservice.port.user.dto.OrderRequestDTO;
 import com.rsr.order_microservice.port.user.dto.PaymentRequestDTO;
 import com.rsr.order_microservice.port.user.producer.EmailProducer;
 import com.rsr.order_microservice.port.user.producer.PaymentProducer;
+import com.rsr.order_microservice.utils.exceptions.UnknownProductIdException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,26 +36,35 @@ public class OrderService {
     private EmailProducer emailProducer;
 
     public Order createOrder(OrderRequestDTO orderRequest) {
-        Order order = new Order();
-        order.setUserId(orderRequest.getUserId());
-        order.setFirstName(orderRequest.getFirstName());
-        order.setLastName(orderRequest.getLastName());
-        order.setEmail(orderRequest.getEmail());
-        order.setAddress(orderRequest.getAddress());
-        order.setPaymentInfo(orderRequest.getPaymentInfo());
+        List<Item> items = orderRequest.getBoughtItems().stream()
+                .map(itemRequest -> {
+                    // Produkt anhand der ID in der Datenbank suchen
+                    Product product = productRepository.findById(itemRequest.getProductId())
+                            .orElseThrow(() -> new UnknownProductIdException());
 
-        List<Product> products = orderRequest.getBoughtProducts().stream()
-                .map(productRequest -> new Product(
-                        null,
-                        productRequest.getProductId(),
-                        productRequest.getPrice(),
-                        productRequest.getSort(),
-                        productRequest.getQuantity()
-                )).collect(Collectors.toList());
+                    // Produktinformationen in ein Item-Objekt übertragen
+                    return new Item(
+                            product.getProductId(),
+                            product.getProductName(),
+                            product.getPriceInEuro(),
+                            itemRequest.getQuantity()
+                    );
+                }).toList();
 
-        order.setProducts(products);
-        order.setPaymentCompleted(false);
-        order.setOrderCreationTime(LocalDateTime.now());
+        Order order = new Order(
+                UUID.randomUUID(),
+                orderRequest.getUserId(),
+                orderRequest.getFirstName(),
+                orderRequest.getLastName(),
+                orderRequest.getEmail(),
+                orderRequest.getAddress(),
+                orderRequest.getPaymentInfo(),
+                false,
+                LocalDateTime.now(),
+                items,
+                0
+        );
+        order.setTotalPrice(order.getTotalPrice());
 
         Order savedOrder = orderRepository.save(order);
 
@@ -71,12 +82,8 @@ public class OrderService {
     }
 
     private void sendOrderToEmail(Order order) {
-        OrderDTO orderToSend = new OrderDTO(order.getId(), order.getUserId(), order.getFirstName(), order.getLastName(), LocalDateTime.now() , order.getEmail(), order.getProducts());
+        OrderDTO orderToSend = new OrderDTO(order.getId(), order.getUserId(), order.getFirstName(), order.getLastName(), LocalDateTime.now() , order.getEmail(), order.getItems());
         emailProducer.sendOrdertoEmail(orderToSend);
-    }
-
-    public void updateProduct(Product product) {
-        productRepository.save(product);
     }
 
     public void completePayment(UUID orderId) {

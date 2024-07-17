@@ -1,8 +1,10 @@
 package com.rsr.order_microservice;
 
+import com.rsr.order_microservice.domain.model.Item;
 import com.rsr.order_microservice.domain.model.Order;
 import com.rsr.order_microservice.domain.model.Product;
 import com.rsr.order_microservice.domain.service.impl.OrderService;
+import com.rsr.order_microservice.domain.service.impl.ProductService;
 import com.rsr.order_microservice.port.user.controller.OrderController;
 import com.rsr.order_microservice.port.user.dto.OrderRequestDTO;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +26,9 @@ public class OrderControllerTest {
 
     @Mock
     private OrderService orderService;
+
+    @Mock
+    private ProductService productService;
 
     @InjectMocks
     private OrderController orderController;
@@ -47,14 +52,15 @@ public class OrderControllerTest {
         orderRequest.setAddress("123 Street");
         orderRequest.setPaymentInfo("Credit Card");
 
-        OrderRequestDTO.ProductRequest productRequest = new OrderRequestDTO.ProductRequest();
-        productRequest.setProductId(productID);
-        productRequest.setPrice(10.0);
-        productRequest.setSort("Electronics");
-        productRequest.setQuantity(1);
-        orderRequest.setBoughtProducts(Arrays.asList(productRequest));
+        OrderRequestDTO.ItemRequest itemRequest = new OrderRequestDTO.ItemRequest();
+        itemRequest.setProductId(productID);
+        itemRequest.setQuantity(5);
+        orderRequest.setBoughtItems(Arrays.asList(itemRequest));
 
-        Product product = new Product(productID, productID, 10.0, "Opal", 1);
+        Product product = new Product(productID, 30.0, "Opal");
+        Item item = new Item(productID, product.getProductName(), product.getPriceInEuro(), 5);
+        productService.updateProduct(product);
+
         Order savedOrder = new Order();
         savedOrder.setId(orderID);
         savedOrder.setUserId(userID);
@@ -62,19 +68,18 @@ public class OrderControllerTest {
         savedOrder.setLastName("Doe");
         savedOrder.setEmail("john.doe@example.com");
         savedOrder.setAddress("123 Street");
-        savedOrder.setProducts(Arrays.asList(product));
+        savedOrder.setItems(Arrays.asList(item));
 
         when(orderService.createOrder(any(OrderRequestDTO.class))).thenReturn(savedOrder);
 
-        ResponseEntity<Order> response = orderController.createOrder(orderRequest);
+        ResponseEntity<Order> response = orderController.createOrder(orderRequest, userID);
 
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
         assertNotNull(response.getBody());
         assertEquals(userID, response.getBody().getUserId());
-        assertNotNull(response.getBody().getProducts());
-        assertEquals(1, response.getBody().getProducts().size());
-        assertEquals("Opal", response.getBody().getProducts().get(0).getSort());
+        assertNotNull(response.getBody().getItems());
+        assertEquals("Opal", response.getBody().getItems().get(0).getProductName());
     }
 
     @Test
@@ -89,7 +94,7 @@ public class OrderControllerTest {
 
         when(orderService.getOrder(orderID)).thenReturn(Optional.of(order));
 
-        ResponseEntity<Order> response = orderController.getOrder(orderID);
+        ResponseEntity<Order> response = orderController.getOrder(orderID, userID);
 
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
@@ -101,7 +106,7 @@ public class OrderControllerTest {
     public void testGetOrder_NotFound() {
         when(orderService.getOrder(orderID)).thenReturn(Optional.empty());
 
-        ResponseEntity<Order> response = orderController.getOrder(orderID);
+        ResponseEntity<Order> response = orderController.getOrder(orderID, userID);
 
         assertNotNull(response);
         assertEquals(404, response.getStatusCodeValue());

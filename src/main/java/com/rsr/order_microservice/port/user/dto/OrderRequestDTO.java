@@ -13,14 +13,11 @@ public class OrderRequestDTO {
     private String email;
     private String address;
     private String paymentInfo;
-    private List<ProductRequest> boughtProducts;
+    private List<ItemRequest> boughtItems;
 
     @Data
-    public static class ProductRequest {
+    public static class ItemRequest {
         private UUID productId;
-        private Double price;
-        //brauch man sort?
-        private String sort;
         private Integer quantity;
     }
 }
