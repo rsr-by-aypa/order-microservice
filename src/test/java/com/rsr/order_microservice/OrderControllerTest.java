@@ -58,7 +58,7 @@ public class OrderControllerTest {
         orderRequest.setBoughtItems(Arrays.asList(itemRequest));
 
         Product product = new Product(productID, 30.0, "Opal");
-        Item item = new Item(productID, product.getProductName(), product.getPriceInEuro(), 5);
+        Item item = new Item(productID, product.getName(), product.getPriceInEuro(), 5);
         productService.updateProduct(product);
 
         Order savedOrder = new Order();
