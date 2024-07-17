@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/orders")
 public class OrderController {
@@ -25,7 +27,7 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Order> getOrder(@PathVariable Long id) {
+    public ResponseEntity<Order> getOrder(@PathVariable UUID id) {
         return orderService.getOrder(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

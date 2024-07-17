@@ -9,6 +9,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.UUID;
+
 import static org.mockito.Mockito.*;
 
 public class OrderConsumerTest {
@@ -19,6 +21,10 @@ public class OrderConsumerTest {
     @InjectMocks
     private OrderConsumer orderConsumer;
 
+    private UUID id = UUID.randomUUID();
+    private UUID productId = UUID.randomUUID();
+    private UUID orderId = UUID.randomUUID();
+
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -26,14 +32,14 @@ public class OrderConsumerTest {
 
     @Test
     public void testHandleProductCreated() {
-        Product product = new Product(1L, 1L, 10.0, "Opal", 1);
+        Product product = new Product(id, productId, 10.0, "Opal", 1);
         orderConsumer.handleProductCreated(product);
         verify(orderService, times(1)).updateProduct(product);
     }
 
     @Test
     public void testHandleProductUpdated() {
-        Product product = new Product(1L, 1L, 10.0, "Crystal", 1);
+        Product product = new Product(id, productId, 10.0, "Crystal", 1);
         orderConsumer.handleProductUpdated(product);
         verify(orderService, times(1)).updateProduct(product);
     }
@@ -41,7 +47,6 @@ public class OrderConsumerTest {
 
     @Test
     public void testHandlePaymentSuccess() {
-        Long orderId = 1L;
         orderConsumer.handlePaymentSuccess(orderId);
         verify(orderService, times(1)).completePayment(orderId);
     }

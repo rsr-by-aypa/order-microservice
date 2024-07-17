@@ -8,6 +8,8 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 public class OrderConsumer {
 
@@ -29,7 +31,7 @@ public class OrderConsumer {
     }
 
     @RabbitListener(queues = "${rabbitmq.payment.success.queue.name}")
-    public void handlePaymentSuccess(Long orderId) {
+    public void handlePaymentSuccess(UUID orderId) {
         LOGGER.info("Received payment success message for order ID: {}", orderId);
         orderService.completePayment(orderId);
     }

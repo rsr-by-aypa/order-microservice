@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -27,6 +28,10 @@ public class OrderControllerTest {
     @InjectMocks
     private OrderController orderController;
 
+    UUID userID = UUID.randomUUID();
+    UUID productID = UUID.randomUUID();
+    UUID orderID = UUID.randomUUID();
+
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -35,7 +40,7 @@ public class OrderControllerTest {
     @Test
     public void testCreateOrder() {
         OrderRequestDTO orderRequest = new OrderRequestDTO();
-        orderRequest.setUserId("user1");
+        orderRequest.setUserId(userID);
         orderRequest.setFirstName("John");
         orderRequest.setLastName("Doe");
         orderRequest.setEmail("john.doe@example.com");
@@ -43,16 +48,16 @@ public class OrderControllerTest {
         orderRequest.setPaymentInfo("Credit Card");
 
         OrderRequestDTO.ProductRequest productRequest = new OrderRequestDTO.ProductRequest();
-        productRequest.setProductId(1L);
+        productRequest.setProductId(productID);
         productRequest.setPrice(10.0);
         productRequest.setSort("Electronics");
         productRequest.setQuantity(1);
         orderRequest.setBoughtProducts(Arrays.asList(productRequest));
 
-        Product product = new Product(1L, 1L, 10.0, "Opal", 1);
+        Product product = new Product(productID, productID, 10.0, "Opal", 1);
         Order savedOrder = new Order();
-        savedOrder.setId(1L);
-        savedOrder.setUserId("user1");
+        savedOrder.setId(orderID);
+        savedOrder.setUserId(userID);
         savedOrder.setFirstName("John");
         savedOrder.setLastName("Doe");
         savedOrder.setEmail("john.doe@example.com");
@@ -66,7 +71,7 @@ public class OrderControllerTest {
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
         assertNotNull(response.getBody());
-        assertEquals("user1", response.getBody().getUserId());
+        assertEquals(userID, response.getBody().getUserId());
         assertNotNull(response.getBody().getProducts());
         assertEquals(1, response.getBody().getProducts().size());
         assertEquals("Opal", response.getBody().getProducts().get(0).getSort());
@@ -75,28 +80,28 @@ public class OrderControllerTest {
     @Test
     public void testGetOrder() {
         Order order = new Order();
-        order.setId(1L);
-        order.setUserId("user1");
+        order.setId(orderID);
+        order.setUserId(userID);
         order.setFirstName("John");
         order.setLastName("Doe");
         order.setEmail("john.doe@example.com");
         order.setAddress("123 Street");
 
-        when(orderService.getOrder(1L)).thenReturn(Optional.of(order));
+        when(orderService.getOrder(orderID)).thenReturn(Optional.of(order));
 
-        ResponseEntity<Order> response = orderController.getOrder(1L);
+        ResponseEntity<Order> response = orderController.getOrder(orderID);
 
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
         assertNotNull(response.getBody());
-        assertEquals("user1", response.getBody().getUserId());
+        assertEquals(userID, response.getBody().getUserId());
     }
 
     @Test
     public void testGetOrder_NotFound() {
-        when(orderService.getOrder(1L)).thenReturn(Optional.empty());
+        when(orderService.getOrder(orderID)).thenReturn(Optional.empty());
 
-        ResponseEntity<Order> response = orderController.getOrder(1L);
+        ResponseEntity<Order> response = orderController.getOrder(orderID);
 
         assertNotNull(response);
         assertEquals(404, response.getStatusCodeValue());

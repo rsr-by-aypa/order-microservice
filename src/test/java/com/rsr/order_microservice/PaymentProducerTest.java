@@ -1,7 +1,7 @@
 package com.rsr.order_microservice;
 
 import com.rsr.order_microservice.port.user.dto.PaymentRequestDTO;
-import com.rsr.order_microservice.port.user.producer.OrderProducer;
+import com.rsr.order_microservice.port.user.producer.PaymentProducer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -11,22 +11,28 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class OrderProducerTest {
+public class PaymentProducerTest {
 
     @Mock
     private RabbitTemplate rabbitTemplate;
 
     @InjectMocks
-    private OrderProducer orderProducer;
+    private PaymentProducer paymentProducer;
 
     @Value("${rabbitmq.rsr.exchange.name}")
     private String exchange;
 
     @Value("${rabbitmq.order.toPay.routing_key}")
     private String routingKey;
+
+    private UUID userId = UUID.randomUUID();
+    private UUID productId = UUID.randomUUID();
+    private UUID orderId = UUID.randomUUID();
 
     @BeforeEach
     public void setUp() {
@@ -35,9 +41,9 @@ public class OrderProducerTest {
 
     @Test
     public void testSendPaymentRequest() {
-        PaymentRequestDTO paymentRequest = new PaymentRequestDTO("user1", 100.0, "Credit Card");
+        PaymentRequestDTO paymentRequest = new PaymentRequestDTO(userId, 100.0, "Credit Card");
 
-        orderProducer.sendPaymentRequest(paymentRequest);
+        paymentProducer.sendPaymentRequest(paymentRequest);
 
         ArgumentCaptor<String> exchangeCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> routingKeyCaptor = ArgumentCaptor.forClass(String.class);

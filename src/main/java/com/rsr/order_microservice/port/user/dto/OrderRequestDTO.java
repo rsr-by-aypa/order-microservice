@@ -3,10 +3,11 @@ package com.rsr.order_microservice.port.user.dto;
 import lombok.Data;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
 public class OrderRequestDTO {
-    private String userId;
+    private UUID userId;
     private String firstName;
     private String lastName;
     private String email;
@@ -16,7 +17,7 @@ public class OrderRequestDTO {
 
     @Data
     public static class ProductRequest {
-        private Long productId;
+        private UUID productId;
         private Double price;
         //brauch man sort?
         private String sort;
