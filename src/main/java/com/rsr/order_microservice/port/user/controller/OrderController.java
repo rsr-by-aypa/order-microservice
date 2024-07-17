@@ -24,6 +24,7 @@ public class OrderController {
     public ResponseEntity<Order> createOrder(@RequestBody OrderRequestDTO orderRequest, @PathVariable UUID userId) {
         orderRequest.setUserId(userId);
         Order order = orderService.createOrder(orderRequest);
+        orderService.sendOrderToShoppingCart(order.getId(), order.getUserId());
         return ResponseEntity.ok(order);
     }
 

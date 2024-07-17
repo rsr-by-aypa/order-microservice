@@ -5,11 +5,13 @@ import com.rsr.order_microservice.domain.model.Order;
 import com.rsr.order_microservice.domain.model.Product;
 import com.rsr.order_microservice.domain.service.interfaces.OrderRepository;
 import com.rsr.order_microservice.domain.service.interfaces.ProductRepository;
+import com.rsr.order_microservice.port.shopping_cart.dto.OrderCreatedDto;
+import com.rsr.order_microservice.port.shopping_cart.producer.ShoppingCartProducer;
 import com.rsr.order_microservice.port.user.dto.OrderDTO;
 import com.rsr.order_microservice.port.user.dto.OrderRequestDTO;
 import com.rsr.order_microservice.port.user.dto.PaymentRequestDTO;
-import com.rsr.order_microservice.port.user.producer.EmailProducer;
-import com.rsr.order_microservice.port.user.producer.PaymentProducer;
+import com.rsr.order_microservice.port.email.producer.EmailProducer;
+import com.rsr.order_microservice.port.payment.producer.PaymentProducer;
 import com.rsr.order_microservice.utils.exceptions.UnknownProductIdException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,6 +35,9 @@ public class OrderService {
 
     @Autowired
     private EmailProducer emailProducer;
+
+    @Autowired
+    private ShoppingCartProducer shoppingCartProducer;
 
     public Order createOrder(OrderRequestDTO orderRequest) {
         List<Item> items = orderRequest.getBoughtItems().stream()
@@ -89,6 +94,11 @@ public class OrderService {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new IllegalArgumentException("Invalid order ID"));
         order.setPaymentCompleted(true);
         orderRepository.save(order);
+    }
+
+    public void sendOrderToShoppingCart(UUID orderId, UUID userId) {
+        OrderCreatedDto orderCreatedDto = new OrderCreatedDto(orderId, userId);
+        shoppingCartProducer.sendOrderCreated(orderCreatedDto);
     }
 
     public Optional<Order> getOrder(UUID id) {

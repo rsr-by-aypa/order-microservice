@@ -1,7 +1,7 @@
 package com.rsr.order_microservice;
 
 import com.rsr.order_microservice.port.user.dto.PaymentRequestDTO;
-import com.rsr.order_microservice.port.user.producer.PaymentProducer;
+import com.rsr.order_microservice.port.payment.producer.PaymentProducer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
