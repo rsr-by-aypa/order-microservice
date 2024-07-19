@@ -1,4 +1,4 @@
-package com.rsr.order_microservice;
+package com.rsr.order_microservice.unit;
 
 import com.rsr.order_microservice.domain.model.Product;
 import com.rsr.order_microservice.domain.service.impl.OrderService;

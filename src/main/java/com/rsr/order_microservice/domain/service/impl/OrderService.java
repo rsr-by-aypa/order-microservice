@@ -40,6 +40,41 @@ public class OrderService {
     private ShoppingCartProducer shoppingCartProducer;
 
     public Order createOrder(OrderRequestDTO orderRequest) {
+
+        Order order = convertDTOToOrder(orderRequest);
+        order.setTotalPrice(order.getTotalPrice());
+
+        Order savedOrder = orderRepository.save(order);
+
+        // Sende die Zahlungsanfrage an RabbitMQ
+        sendPaymentRequest(savedOrder);
+        //sende Email mit Daten
+        sendOrderToEmail(savedOrder);
+
+        return savedOrder;
+    }
+
+    private Order convertDTOToOrder(OrderRequestDTO orderRequest) {
+        List<Item> items = extractItemsFromOrderRequest(orderRequest);
+
+        Order order = new Order(
+                UUID.randomUUID(),
+                orderRequest.getUserId(),
+                orderRequest.getFirstName(),
+                orderRequest.getLastName(),
+                orderRequest.getEmail(),
+                orderRequest.getAddress(),
+                orderRequest.getPaymentInfo(),
+                false,
+                LocalDateTime.now(),
+                items,
+                0
+        );
+
+        return order;
+    }
+
+    private List<Item> extractItemsFromOrderRequest(OrderRequestDTO orderRequest) {
         List<Item> items = orderRequest.getBoughtItems().stream()
                 .map(itemRequest -> {
                     // Produkt anhand der ID in der Datenbank suchen
@@ -55,29 +90,7 @@ public class OrderService {
                     );
                 }).toList();
 
-        Order order = new Order(
-                UUID.randomUUID(),
-                orderRequest.getUserId(),
-                orderRequest.getFirstName(),
-                orderRequest.getLastName(),
-                orderRequest.getEmail(),
-                orderRequest.getAddress(),
-                orderRequest.getPaymentInfo(),
-                false,
-                LocalDateTime.now(),
-                items,
-                0
-        );
-        order.setTotalPrice(order.getTotalPrice());
-
-        Order savedOrder = orderRepository.save(order);
-
-        // Sende die Zahlungsanfrage an RabbitMQ
-        sendPaymentRequest(savedOrder);
-        //sende Email mit Daten
-        sendOrderToEmail(savedOrder);
-
-        return savedOrder;
+        return items;
     }
 
     private void sendPaymentRequest(Order order) {
@@ -86,7 +99,7 @@ public class OrderService {
     }
 
     private void sendOrderToEmail(Order order) {
-        OrderDTO orderToSend = new OrderDTO(order.getId(), order.getUserId(), order.getFirstName(), order.getLastName(), LocalDateTime.now() , order.getEmail(), order.getItems());
+        OrderDTO orderToSend = new OrderDTO(order.getId(), order.getUserId(), order.getFirstName(), order.getLastName(), LocalDateTime.now(), order.getEmail(), order.getItems());
         emailProducer.sendOrdertoEmail(orderToSend);
     }
 

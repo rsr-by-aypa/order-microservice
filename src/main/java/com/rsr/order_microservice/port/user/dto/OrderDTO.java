@@ -1,7 +1,6 @@
 package com.rsr.order_microservice.port.user.dto;
 
 import com.rsr.order_microservice.domain.model.Item;
-import com.rsr.order_microservice.domain.model.Product;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
